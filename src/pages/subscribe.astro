@@ -1,0 +1,149 @@
+---
+import { getSortedPosts } from "@/utils/getSortedPosts";
+import { getCollection } from "astro:content";
+import { getPostUrl } from "@/utils/getPostPaths";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Main from "@/components/Main.astro";
+import Footer from "@/components/Footer.astro";
+import config from "@/config";
+
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const sortedPosts = getSortedPosts(posts).slice(0, 10);
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const feedUrl = `${config.site.url.replace(/\/+$/, "")}/rss.xml`;
+---
+
+<Layout title={`订阅 | ${config.site.title}`} description="通过 RSS 订阅本博客的新文章。">
+  <Header />
+
+  <Breadcrumb />
+
+  <Main
+    pageTitle="订阅本博客"
+    pageDesc="把 RSS 地址粘贴到任意订阅器，新文章发布会自动推送给你。"
+    class="app-prose"
+  >
+    <div class="not-prose feed-card">
+      <span class="feed-label">RSS 地址</span>
+      <code id="feed-url">{feedUrl}</code>
+      <button id="copy-feed-btn" class="copy-btn" type="button" data-url={feedUrl}>
+        复制
+      </button>
+    </div>
+    <p class="not-prose readers-hint">
+      常用阅读器：
+      <a href="https://feedly.com" target="_blank" rel="noopener">Feedly</a> ·
+      <a href="https://www.inoreader.com" target="_blank" rel="noopener">Inoreader</a> ·
+      <a href="https://follow.is" target="_blank" rel="noopener">Follow</a>
+      ——订阅器里选择"从 URL 添加源"，粘贴上面的地址即可。
+    </p>
+
+    <h2 class="not-prose recent-title">最近文章</h2>
+    <ul class="not-prose recent-list">
+      {
+        sortedPosts.map(({ data, id, filePath }) => (
+          <li>
+            <a href={getPostUrl(id, filePath, locale)}>{data.title}</a>
+            <span class="post-date">
+              {new Date(data.modDatetime ?? data.pubDatetime)
+                .toISOString()
+                .slice(0, 10)}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </Main>
+
+  <Footer />
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const btn = document.getElementById("copy-feed-btn");
+    btn?.addEventListener("click", async () => {
+      const url = (btn as HTMLElement).dataset.url ?? "";
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = "已复制";
+      } catch {
+        btn.textContent = url;
+      }
+      setTimeout(() => (btn.textContent = "复制"), 2000);
+    });
+  });
+</script>
+
+<style>
+  .feed-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    background: var(--color-muted);
+    border-radius: 6px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .feed-label {
+    color: var(--color-muted-foreground);
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+  .feed-card code {
+    flex: 1;
+    min-width: 12rem;
+    font-family: var(--font-app);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+  }
+  .copy-btn {
+    background: var(--color-accent);
+    color: var(--color-accent-foreground);
+    border: 0;
+    border-radius: 4px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .readers-hint {
+    font-size: 0.95rem;
+    margin-top: 1rem;
+  }
+  .recent-title {
+    margin-top: 2.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+  .recent-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.75rem;
+  }
+  .recent-list li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--color-border);
+    padding: 0.7rem 0;
+  }
+  .recent-list a {
+    color: var(--color-foreground);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .recent-list a:hover {
+    color: var(--color-accent);
+  }
+  .post-date {
+    color: var(--color-muted-foreground);
+    font-size: 0.85rem;
+    white-space: nowrap;
+    font-family: var(--font-app);
+  }
+</style>
