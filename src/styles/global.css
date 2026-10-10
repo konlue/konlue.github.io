@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@import "./theme.css";
+@import "./typography.css";
+@import "rehype-callouts/theme/obsidian";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@layer base {
+  * {
+    @apply border-border outline-accent/75;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted) transparent;
+  }
+  html {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      "PingFang SC",
+      "Hiragino Sans GB",
+      "Noto Sans SC",
+      "Microsoft YaHei",
+      sans-serif;
+  }
+  body {
+    @apply text-foreground;
+    text-justify: inter-ideograph;
+  }
+  a,
+  button,
+  #main-content {
+    @apply outline-accent outline-offset-1 focus-visible:no-underline focus-visible:outline-2 focus-visible:outline-dashed;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility max-w-app {
+  @apply max-w-4xl;
+}
+
+@utility app-layout {
+  @apply max-w-app mx-auto w-full px-4;
+}
+
+@utility active-nav {
+  @apply underline decoration-wavy decoration-2 underline-offset-8;
+}
+
+:target {
+  scroll-margin-block: 1rem;
+}
+
+/* ===== 动效层 ===== */
+/* 统一减速曲线：自信的到达，不用回弹 */
+:root {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* View Transitions：页面导航的淡入淡出走同一条曲线 */
+html::view-transition-old(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+html::view-transition-new(root) {
+  animation-duration: 280ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+/* 主内容区整体 morph：所有页面共用一个共享元素名；旧内容快离、新内容慢到 */
+html::view-transition-group(page-content) {
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease-out-expo);
+}
+@keyframes content-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+html::view-transition-old(page-content) {
+  animation: content-out 160ms ease-in both;
+}
+html::view-transition-new(page-content) {
+  animation: content-in 300ms var(--ease-out-expo) both;
+}
+
+/* 主题切换的圆形扩散：新主题从切换按钮位置揭开旧主题 */
+:root.vt-theme::view-transition-old(root),
+:root.vt-theme::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 首页状态流转：全站唯一的编排动效。默认状态可见，仅在 flow-play 时播放 */
+@keyframes flow-node-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes flow-arrow-in {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes flow-stamp {
+  0% {
+    opacity: 0;
+    transform: scale(1.05);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes tag-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes tag-out {
+  to {
+    opacity: 0;
+  }
+}
+#state-flow.flow-play .flow-node {
+  animation: flow-node-in 240ms var(--ease-out-expo) both;
+}
+#state-flow.flow-play .flow-arrow {
+  animation: flow-arrow-in 200ms var(--ease-out-expo) both;
+}
+#state-flow.flow-play .flow-node:nth-child(3) {
+  animation-delay: 200ms;
+}
+#state-flow.flow-play .flow-arrow:nth-child(4) {
+  animation-delay: 340ms;
+}
+#state-flow.flow-play .flow-node.flow-current {
+  animation: flow-stamp 420ms var(--ease-out-expo) 460ms both;
+}
+
+/* 浏览器表面：输入光标也属于配色系统 */
+input,
+textarea {
+  caret-color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #state-flow.flow-play .flow-node,
+  #state-flow.flow-play .flow-arrow {
+    animation: none !important;
+  }
+  html::view-transition-old(root),
+  html::view-transition-new(root),
+  :root.vt-theme::view-transition-old(root),
+  :root.vt-theme::view-transition-new(root),
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
