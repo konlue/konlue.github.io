@@ -9,10 +9,13 @@ import IconMoon from "@/assets/icons/IconMoon.svg";
 import IconX from "@/assets/icons/IconX.svg";
 import LinkButton from "./LinkButton.astro";
 import { stripBase, stripLocale } from "@/utils/withBase";
+import { getOptionalImage } from "@/utils/optionalImage";
+import { Image } from "astro:assets";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
 const { site, features } = config;
+const avatar = getOptionalImage("avatar");
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
@@ -50,9 +53,20 @@ const isActive = (path: string) => {
   >
     <a
       href={getRelativeLocaleUrl(locale, "")}
-      class="hover:text-accent absolute py-1 text-xl leading-8 font-semibold whitespace-nowrap transition-colors duration-150 sm:static sm:my-auto sm:text-2xl sm:leading-none"
+      class="hover:text-accent absolute flex items-center gap-2.5 py-1 text-xl leading-8 font-semibold whitespace-nowrap transition-colors duration-150 sm:static sm:my-auto sm:text-2xl sm:leading-none"
     >
-      {site.title}
+      {
+        avatar && (
+          <Image
+            src={avatar}
+            width={96}
+            height={96}
+            alt=""
+            class="border-border size-8 rounded-full border object-cover sm:size-10"
+          />
+        )
+      }
+      <span>{site.title}</span>
     </a>
     <nav
       id="nav-menu"
