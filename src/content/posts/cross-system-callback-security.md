@@ -2,7 +2,7 @@
 pubDatetime: 2026-10-10T02:30:00.000Z
 title: "跨系统回调的安全设计：鉴权链、防重放与幂等"
 slug: cross-system-callback-security
-featured: false
+featured: true
 draft: false
 tags:
   - 后端

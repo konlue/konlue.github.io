@@ -34,7 +34,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
     transition:name="page-content"
     class="app-layout my-1"
   >
-    <section id="hero" class="border-border border-b pt-8 pb-6">
+    <section id="hero" class="border-border border-b pt-8 pb-6 hero-dots">
       <h1 class="my-4 inline-block text-4xl font-bold sm:my-8 sm:text-5xl">
         {config.site.author}
       </h1>
@@ -165,3 +165,45 @@ const homePath = getRelativeLocaleUrl(locale, "");
     }
   });
 </script>
+
+<style>
+  /* hero 点阵微背景：accent 色细点 + 径向渐隐，呼吸动画尊重减动效偏好 */
+  .hero-dots {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .hero-dots::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: radial-gradient(
+      circle,
+      var(--accent) 1px,
+      transparent 1.5px
+    );
+    background-size: 22px 22px;
+    opacity: 0.14;
+    -webkit-mask-image: radial-gradient(
+      120% 100% at 50% 0%,
+      black 30%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(120% 100% at 50% 0%, black 30%, transparent 78%);
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-dots::before {
+      animation: dots-breathe 9s ease-in-out infinite alternate;
+    }
+  }
+  @keyframes dots-breathe {
+    from {
+      opacity: 0.08;
+    }
+    to {
+      opacity: 0.18;
+    }
+  }
+</style>

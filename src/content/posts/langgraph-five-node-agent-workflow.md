@@ -2,7 +2,7 @@
 pubDatetime: 2026-10-11T06:00:00.000Z
 title: "用 LangGraph 编排一条五节点的 Agent 工作流"
 slug: langgraph-five-node-agent-workflow
-featured: true
+featured: false
 draft: false
 tags:
   - AI 应用
