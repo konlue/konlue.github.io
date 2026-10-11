@@ -73,7 +73,13 @@ const {
   hideEditPost,
 } = post.data;
 
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+
+// 桌面端侧边目录：取二/三级标题，少于 3 个不值得展示
+const tocItems = headings
+  .filter(({ depth }) => depth === 2 || depth === 3)
+  .map(({ depth, slug, text }) => ({ depth, slug, text }));
+const showToc = tocItems.length >= 3;
 
 let ogImageUrl: string | undefined;
 
@@ -161,6 +167,35 @@ const ogImage = ogImageUrl
 
     <AdjacentPostNav {prevPost} {nextPost} />
   </main>
+
+  {
+    showToc && (
+      <aside
+        id="toc"
+        aria-label="目录"
+        class="border-border fixed top-24 hidden w-52 border-s ps-4 min-[1380px]:block"
+        style={`inset-inline-start: calc(50% + 29rem);`}
+      >
+        <p class="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
+          目录
+        </p>
+        <ul class="space-y-1.5 text-sm">
+          {tocItems.map(item => (
+            <li class:list={[item.depth === 3 && "ps-3"]}>
+              <a
+                href={`#${item.slug}`}
+                data-toc-link={item.slug}
+                class="text-muted-foreground hover:text-accent block leading-snug transition-colors"
+              >
+                {item.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )
+  }
+
   <Footer />
 </PostLayout>
 
@@ -607,4 +642,44 @@ const ogImage = ogImageUrl
   // astro:page-load 兜底视图过渡后的重放。
   renderMermaidBlocks();
   document.addEventListener("astro:page-load", renderMermaidBlocks);
+</script>
+
+<script>
+  // 目录 scrollspy：滚动时高亮当前章节对应的目录项
+  function setupTocSpy() {
+    const toc = document.getElementById("toc");
+    if (!toc || toc.dataset.spyBound) return;
+    const links = Array.from(
+      toc.querySelectorAll<HTMLAnchorElement>("a[data-toc-link]"),
+    );
+    const targets = links
+      .map(a => document.getElementById(a.dataset.tocLink ?? ""))
+      .filter((el): el is HTMLElement => !!el);
+    if (targets.length === 0) return;
+    toc.dataset.spyBound = "1";
+
+    let activeId: string | null = null;
+    const update = () => {
+      let current = targets[0]?.id ?? null;
+      for (const el of targets) {
+        if (el.getBoundingClientRect().top <= 96) current = el.id;
+      }
+      if (current === activeId) return;
+      activeId = current;
+      for (const a of links) {
+        a.classList.toggle("toc-on", a.dataset.tocLink === current);
+      }
+    };
+
+    update();
+    const anyWin = window as any;
+    if (anyWin.__tocScrollHandler) {
+      document.removeEventListener("scroll", anyWin.__tocScrollHandler);
+    }
+    anyWin.__tocScrollHandler = update;
+    document.addEventListener("scroll", update, { passive: true });
+  }
+
+  setupTocSpy();
+  document.addEventListener("astro:page-load", setupTocSpy);
 </script>

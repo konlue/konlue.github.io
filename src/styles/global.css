@@ -189,3 +189,15 @@ textarea {
     animation: none !important;
   }
 }
+
+/* 目录 scrollspy 高亮（未命中时保持链接默认色） */
+#toc a.toc-on {
+  @apply text-accent font-medium;
+}
+
+/* 锚点平滑滚动（尊重减动效偏好） */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
